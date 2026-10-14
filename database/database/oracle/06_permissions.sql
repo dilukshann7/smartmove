@@ -23,6 +23,12 @@ GRANT EXECUTE ON passenger_history TO smartmove_database_reporting;
 GRANT EXECUTE ON maintenance_due TO smartmove_database_reporting;
 GRANT EXECUTE ON trip_occupancy TO smartmove_database_reporting;
 
+GRANT EXECUTE ON popular_routes TO smartmove_database_app;
+GRANT EXECUTE ON revenue TO smartmove_database_app;
+GRANT EXECUTE ON passenger_history TO smartmove_database_app;
+GRANT EXECUTE ON maintenance_due TO smartmove_database_app;
+GRANT EXECUTE ON trip_occupancy TO smartmove_database_app;
+
 GRANT EXECUTE ON add_vehicle TO smartmove_database_app;
 GRANT EXECUTE ON update_vehicle TO smartmove_database_app;
 GRANT EXECUTE ON add_driver TO smartmove_database_app;

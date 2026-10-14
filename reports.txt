@@ -1,0 +1,7 @@
+SET SERVEROUTPUT ON;
+
+EXEC popular_routes;
+EXEC revenue;
+EXEC passenger_history(1);
+EXEC maintenance_due(SYSDATE);
+EXEC trip_occupancy;

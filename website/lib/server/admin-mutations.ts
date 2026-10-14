@@ -5,6 +5,7 @@ import { newRecordId } from "./record-id";
 import { cancelPassengerBooking } from "./booking-actions";
 import type { AdminResource } from "./admin-data";
 import { sriLankaDate } from "../admin-reports";
+import { getMongoDb, type FeedbackContent } from "./mongo";
 
 type Form = Record<string, unknown>;
 function string(value: unknown, label: string, max = 100) {
@@ -53,6 +54,47 @@ export async function mutateAdminResource(
   form: Form,
 ) {
   const recordId = method === "POST" ? null : id(form.id);
+  if (resource === "feedback") {
+    if (method !== "PATCH")
+      throw new Error("Unknown admin feedback operation.");
+    const operation = form.action;
+    if (!["reply", "resolve", "reopen"].includes(String(operation)))
+      throw new Error("Choose a valid feedback action.");
+    const message =
+      operation === "reply" ? string(form.message, "reply", 2000) : "";
+    const result = await connection.execute<{ STATUS: string }>(
+      `SELECT status FROM smartmove_database.feedback_records
+       WHERE feedback_id = :id FOR UPDATE`,
+      { id: recordId },
+    );
+    if (!result.rows?.[0])
+      throw new Error("This action requires existing feedback.");
+    if (operation === "reply") {
+      const db = await getMongoDb();
+      // Keep the passenger's original feedback and ratings intact.
+      await db.collection<FeedbackContent>("feedback_content").updateOne(
+        { feedbackId: String(recordId) },
+        {
+          $set: {
+            reply: {
+              staffName: "SmartMove admin",
+              message,
+              repliedAt: new Date(),
+            },
+          },
+          $setOnInsert: { comment: "" },
+        },
+        { upsert: true },
+      );
+      return { replied: true };
+    }
+    const status = operation === "resolve" ? "RESOLVED" : "OPEN";
+    await connection.execute(
+      `BEGIN smartmove_database.update_feedback_status(:id, :status); END;`,
+      { id: recordId, status },
+    );
+    return { status };
+  }
   if (resource === "routes") {
     const name = method === "DELETE" ? "" : string(form.name, "route name");
     const fare = method === "DELETE" ? 0 : amount(form.baseFare, "fare");

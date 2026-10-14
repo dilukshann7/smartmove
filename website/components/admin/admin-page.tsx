@@ -359,6 +359,7 @@ export function AdminPage({ email }: { email: string }) {
   const [action, setAction] = useState<{ name: string; row: Row } | null>(null)
   const [paymentMethod, setPaymentMethod] = useState("CASH")
   const [maintenanceCost, setMaintenanceCost] = useState("")
+  const [feedbackReply, setFeedbackReply] = useState("")
   const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
@@ -497,16 +498,23 @@ export function AdminPage({ email }: { email: string }) {
     setError("")
     setNotice("")
     try {
-      const response = await fetch("/api/admin/actions", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: action.name,
-          id: action.row.id,
-          method: paymentMethod,
-          cost: maintenanceCost,
-        }),
-      })
+      const isFeedback = action.name.endsWith("_feedback")
+      const response = await fetch(
+        isFeedback ? "/api/admin/feedback" : "/api/admin/actions",
+        {
+          method: isFeedback ? "PATCH" : "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: isFeedback
+              ? action.name.replace("_feedback", "")
+              : action.name,
+            id: action.row.id,
+            method: paymentMethod,
+            cost: maintenanceCost,
+            ...(isFeedback ? { message: feedbackReply } : {}),
+          }),
+        }
+      )
       const data = await response.json()
       if (!response.ok) throw new Error(data.error)
       setAction(null)
@@ -515,7 +523,13 @@ export function AdminPage({ email }: { email: string }) {
           ? `Trip cancelled; ${data.result.refundCount} full refund record(s) created.`
           : action.name === "record_refund" || action.name === "cancel_booking"
             ? "Refund recorded where payment existed. Actual payout happens outside SmartMove."
-            : "Action completed."
+            : action.name === "reply_feedback"
+              ? "Reply saved. The passenger can view it in Feedback."
+              : action.name === "resolve_feedback"
+                ? "Feedback marked as resolved."
+                : action.name === "reopen_feedback"
+                  ? "Feedback reopened."
+                  : "Action completed."
       )
       refresh()
     } catch (cause) {
@@ -1009,6 +1023,46 @@ export function AdminPage({ email }: { email: string }) {
                                       Bookings
                                     </Button>
                                   )}
+                                  {section === "feedback" && (
+                                    <>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={busy}
+                                        onClick={() => {
+                                          setFeedbackReply(
+                                            String(row.reply ?? "")
+                                          )
+                                          setError("")
+                                          setAction({
+                                            name: "reply_feedback",
+                                            row,
+                                          })
+                                        }}
+                                      >
+                                        {row.reply ? "Edit reply" : "Reply"}
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={busy}
+                                        onClick={() => {
+                                          setError("")
+                                          setAction({
+                                            name:
+                                              row.status === "RESOLVED"
+                                                ? "reopen_feedback"
+                                                : "resolve_feedback",
+                                            row,
+                                          })
+                                        }}
+                                      >
+                                        {row.status === "RESOLVED"
+                                          ? "Reopen"
+                                          : "Resolve"}
+                                      </Button>
+                                    </>
+                                  )}
                                   {section === "announcements" &&
                                     row.status !== "ARCHIVED" && (
                                       <Button
@@ -1039,11 +1093,6 @@ export function AdminPage({ email }: { email: string }) {
                 <p className="mt-3 text-xs text-[#8b9bad]">
                   Refund records represent full amounts. Actual payouts happen
                   outside SmartMove.
-                </p>
-              )}
-              {section === "feedback" && (
-                <p className="mt-3 text-xs text-[#8b9bad]">
-                  Feedback is read-only in this phase.
                 </p>
               )}
             </>
@@ -1211,10 +1260,38 @@ export function AdminPage({ email }: { email: string }) {
                   ? "All seats in this booking will be released. A full refund is recorded if paid."
                   : action?.name === "record_refund"
                     ? "Record the full eligible refund. Actual payout happens outside SmartMove."
-                    : "Confirm this operation."}
+                    : action?.name === "reply_feedback"
+                      ? "Your reply will appear in the passenger's feedback history."
+                      : action?.name === "resolve_feedback"
+                        ? "Mark this feedback as resolved. The message and staff reply will be kept."
+                        : action?.name === "reopen_feedback"
+                          ? "Reopen this feedback for follow-up."
+                          : "Confirm this operation."}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={submitAction} className="space-y-4">
+            {action?.name === "reply_feedback" && (
+              <div className="space-y-3">
+                <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl bg-[#f5f8fc] p-3 text-sm break-words whitespace-pre-wrap">
+                  {action.row.subject && (
+                    <p className="font-semibold">
+                      {String(action.row.subject)}
+                    </p>
+                  )}
+                  <p>{String(action.row.comment || "No message recorded.")}</p>
+                </div>
+                <Label htmlFor="feedback-reply">Staff reply</Label>
+                <Textarea
+                  id="feedback-reply"
+                  required
+                  maxLength={2000}
+                  value={feedbackReply}
+                  onChange={(event) => setFeedbackReply(event.target.value)}
+                  placeholder="Write a reply to the passenger…"
+                  className="min-h-32"
+                />
+              </div>
+            )}
             {action?.name === "record_payment" && (
               <div>
                 <Label htmlFor="payment-method">Payment method</Label>

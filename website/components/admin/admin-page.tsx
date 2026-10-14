@@ -745,7 +745,7 @@ export function AdminPage({ email }: { email: string }) {
                 ].map((card) => (
                   <Card
                     key={card.label}
-                    className="rounded-[24px] border-[#e5ebf3] bg-white shadow-sm"
+                    className="rounded-[24px] border-[#e5ebf3] bg-white py-0 shadow-sm"
                   >
                     <CardContent className="flex flex-row items-start justify-between p-6">
                       <div>

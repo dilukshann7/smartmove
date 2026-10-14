@@ -814,9 +814,14 @@ export function AdminPage({ email }: { email: string }) {
                   </Button>
                 )}
               </div>
-              <Card className="overflow-hidden rounded-[26px] border-[#e5ebf3] bg-white shadow-sm">
+              <Card className="overflow-hidden rounded-[26px] border-[#e5ebf3] bg-white py-0 shadow-sm">
                 <CardContent className="p-0">
-                  <div className="overflow-x-auto">
+                  <div
+                    className="overflow-x-auto"
+                    role="region"
+                    aria-label={`${activeConfig.label} table`}
+                    tabIndex={0}
+                  >
                     <table className="w-full min-w-[720px] border-collapse text-left text-sm">
                       <thead>
                         <tr className="border-b border-[#eaf0f7] bg-[#f9fbfe] text-xs text-[#71839a]">
@@ -825,7 +830,9 @@ export function AdminPage({ email }: { email: string }) {
                               {label}
                             </th>
                           ))}
-                          <th className="px-4 py-4 font-semibold">Actions</th>
+                          <th className="sticky right-0 z-10 w-52 min-w-52 border-l border-[#eaf0f7] bg-[#f9fbfe] px-4 py-4 font-semibold">
+                            Actions
+                          </th>
                         </tr>
                       </thead>
                       <tbody>
@@ -845,14 +852,30 @@ export function AdminPage({ email }: { email: string }) {
                               className="border-b border-[#edf1f6] align-top last:border-0 hover:bg-[#fbfdff]"
                             >
                               {activeConfig.columns.map(([key]) => (
-                                <td
-                                  key={key}
-                                  className={`max-w-64 px-4 py-4 ${key === "comment" || key === "body" ? "min-w-64 whitespace-normal" : "whitespace-nowrap"}`}
-                                >
-                                  {display(row, key)}
+                                <td key={key} className="px-4 py-4">
+                                  {key === "tickets" && row.tickets ? (
+                                    <ul className="w-64 space-y-2 text-xs leading-relaxed">
+                                      {String(row.tickets)
+                                        .split(", ")
+                                        .map((ticket) => (
+                                          <li
+                                            key={ticket}
+                                            className="rounded-lg bg-[#f5f8fc] px-2.5 py-2 break-words"
+                                          >
+                                            {ticket}
+                                          </li>
+                                        ))}
+                                    </ul>
+                                  ) : (
+                                    <div
+                                      className={`max-w-64 [overflow-wrap:anywhere] break-words whitespace-normal ${["comment", "body", "reply"].includes(key) ? "w-64 leading-relaxed" : ["subject", "routeName", "route", "passenger", "name", "email", "driver"].includes(key) ? "min-w-36" : "min-w-20"}`}
+                                    >
+                                      {display(row, key)}
+                                    </div>
+                                  )}
                                 </td>
                               ))}
-                              <td className="min-w-52 px-4 py-3">
+                              <td className="sticky right-0 z-10 w-52 min-w-52 border-l border-[#eaf0f7] bg-white px-4 py-3">
                                 <div className="flex flex-wrap gap-1.5">
                                   {activeConfig.edit &&
                                     (section !== "maintenance" ||

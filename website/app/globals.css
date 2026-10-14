@@ -1143,7 +1143,6 @@
 .smartmove-admin aside button[aria-current="page"] {
   background: #eaf0ff;
   color: #2463eb;
-  box-shadow: inset 3px 0 0 #2463eb;
 }
 
 @media (min-width: 1440px) {

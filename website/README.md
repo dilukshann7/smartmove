@@ -20,6 +20,8 @@ MONGODB_DB=smartmove
 
 For another database, create a dedicated `SMARTMOVE_DATABASE_APP` user with a new password in `XEPDB1`, apply migrations 09, 10, then 11 as SYSDBA after the base SmartMove schema, then set the environment variables. These are one-time scripts; do not rerun them on this database. Oracle and MongoDB services must be running. Never commit `.env.local` or use the example passwords in the coursework scripts.
 
+For the admin Reports section, apply `../database/database/oracle/13_admin_report_permissions.sql` as SYSDBA to grant the website account access to all five existing report procedures. This grant-only script can be reapplied without recreating tables or sample data.
+
 Working ADMIN and passenger demonstration accounts are stored in the ignored `.env.demo.local`. `node scripts/setup-demo.mjs` creates them using scrypt hashes and supplies daily Colombo–Kandy and Colombo–Galle trips for the next fourteen days. Existing accounts/passwords and historical bookings are retained; rerunning the utility verifies the saved accounts and skips matching trips. It uses owner credentials from `../database/.env.smartmove.local`. Public signup creates passengers only. Both roles use `/login`, then go to `/admin` or `/dashboard`.
 
 ## Current workflow
@@ -32,6 +34,7 @@ Working ADMIN and passenger demonstration accounts are stored in the ignored `.e
 - `/feedback` accepts one review per confirmed booking on a completed trip, or a complaint linked to any owned booking. Oracle stores type and status; MongoDB stores text, ratings and staff replies. This phase displays replies but has no staff reply UI.
 - `/profile` lets passengers change their name and phone; email is read-only. The notification inbox supports read/unread state and reconciles newer Oracle booking/refund events when opened; there are no push updates.
 - `/admin` is the single ADMIN workspace. It has live summary cards and guarded forms for routes, trips, vehicles, drivers, passengers, maintenance, bookings, payments, and eligible full refunds. Tickets follow booking/payment actions. Feedback is read-only. There are no separate staff role screens, admin user management, or standalone report pages.
+- Its Reports section executes `popular_routes`, `revenue`, `passenger_history`, `maintenance_due`, and `trip_occupancy` from `04_reports.sql`. Previews and CSV exports read each procedure's `DBMS_OUTPUT` on the same connection; there are no separate report `SELECT` queries in the website. Passenger history requires a passenger ID, and maintenance uses the selected due date. Table columns match the fields printed by the procedures.
 - Admins manage passenger announcements in MongoDB as drafts, published notices, or archived notices. The public home reads published notices; the old sample document remains visible as sample content.
 
 A new booking is **PENDING**. Seats are held for 30 minutes. Availability and payment checks ignore expired holds without a background scheduler. Expired reservations appear cancelled in the website; their stored Oracle status is not automatically rewritten. The base `record_payment` procedure confirms a paid booking and issues its tickets when an admin records full payment; no external online payment gateway is connected. Booking confirmation and issued tickets are never shown as paid before that procedure runs.

@@ -9,6 +9,7 @@ import {
   BusFront,
   CalendarDays,
   CreditCard,
+  FileBarChart,
   LayoutDashboard,
   LogOut,
   MapPinned,
@@ -34,6 +35,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { lkr } from "@/lib/trip-format"
+import { AdminReports } from "./admin-reports"
 
 type Section =
   | "overview"
@@ -46,6 +48,7 @@ type Section =
   | "bookings"
   | "refunds"
   | "feedback"
+  | "reports"
   | "announcements"
 type Row = Record<string, string | number | boolean | null>
 type Field = {
@@ -78,9 +81,10 @@ const sections: { id: Section; label: string; icon: typeof LayoutDashboard }[] =
     { id: "bookings", label: "Bookings & tickets", icon: Ticket },
     { id: "refunds", label: "Eligible refunds", icon: CreditCard },
     { id: "feedback", label: "Feedback", icon: MessageSquareText },
+    { id: "reports", label: "Reports", icon: FileBarChart },
     { id: "announcements", label: "Announcements", icon: Bell },
   ]
-const config: Record<Exclude<Section, "overview">, Config> = {
+const config: Record<Exclude<Section, "overview" | "reports">, Config> = {
   routes: {
     label: "Routes",
     columns: [
@@ -334,6 +338,7 @@ export function AdminPage({ email }: { email: string }) {
   const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
+    if (section === "reports") return
     const controller = new AbortController()
     const path =
       section === "overview"
@@ -376,12 +381,12 @@ export function AdminPage({ email }: { email: string }) {
     setSection(next)
     setSearch("")
     setRows([])
-    setLoading(true)
+    setLoading(next !== "reports")
     setError("")
     setNotice("")
   }
   function refresh() {
-    setLoading(true)
+    if (section !== "reports") setLoading(true)
     setRefreshKey((value) => value + 1)
   }
   async function openEdit(row: Row | null) {
@@ -525,7 +530,8 @@ export function AdminPage({ email }: { email: string }) {
       router.refresh()
     }
   }
-  const activeConfig = section === "overview" ? null : config[section]
+  const activeConfig =
+    section === "overview" || section === "reports" ? null : config[section]
   return (
     <div className="smartmove-admin min-h-svh bg-[#f5f8fc] text-[#1d1d1f]">
       <header className="sticky top-0 z-30 border-b border-[#e4eaf2] bg-white/95 px-5 py-4 backdrop-blur sm:px-8 lg:px-12">
@@ -579,12 +585,16 @@ export function AdminPage({ email }: { email: string }) {
               <h1 className="text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
                 {section === "overview"
                   ? "Operations at a glance."
-                  : activeConfig?.label}
+                  : section === "reports"
+                    ? "Reports"
+                    : activeConfig?.label}
               </h1>
               <p className="mt-2 text-sm text-[#77879b]">
                 {section === "overview"
                   ? "Live transport and booking activity."
-                  : "Manage live SmartMove records."}
+                  : section === "reports"
+                    ? "View and export transport, revenue, and passenger reports."
+                    : "Manage live SmartMove records."}
               </p>
             </div>
             <Button
@@ -638,6 +648,7 @@ export function AdminPage({ email }: { email: string }) {
               Loading {section}…
             </p>
           )}
+          {section === "reports" && <AdminReports refreshKey={refreshKey} />}
           {!loading && section === "overview" && summary && (
             <>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

@@ -32,9 +32,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { lkr } from "@/lib/trip-format"
+import { sriLankaDate } from "@/lib/admin-reports"
 import { AdminReports } from "./admin-reports"
 
 type Section =
@@ -59,6 +61,10 @@ type Field = {
   lookup?: "routes" | "vehicles" | "drivers"
   createOnly?: boolean
   editOnly?: boolean
+  min?: number
+  max?: number
+  step?: number
+  maxLength?: number
 }
 type Config = {
   label: string
@@ -99,9 +105,20 @@ const config: Record<Exclude<Section, "overview" | "reports">, Config> = {
     remove: true,
     fields: [
       { key: "name", label: "Route name" },
-      { key: "origin", label: "Origin", createOnly: true },
-      { key: "destination", label: "Destination", createOnly: true },
-      { key: "baseFare", label: "Base fare (LKR)", kind: "number" },
+      { key: "origin", label: "Origin", createOnly: true, maxLength: 50 },
+      {
+        key: "destination",
+        label: "Destination",
+        createOnly: true,
+        maxLength: 50,
+      },
+      {
+        key: "baseFare",
+        label: "Base fare (LKR)",
+        kind: "number",
+        min: 0.01,
+        max: 99_999_999.99,
+      },
     ],
   },
   trips: {
@@ -159,9 +176,16 @@ const config: Record<Exclude<Section, "overview" | "reports">, Config> = {
     edit: true,
     remove: true,
     fields: [
-      { key: "registrationNumber", label: "Registration" },
-      { key: "vehicleType", label: "Vehicle type" },
-      { key: "seatCount", label: "Seat count", kind: "number" },
+      { key: "registrationNumber", label: "Registration", maxLength: 20 },
+      { key: "vehicleType", label: "Vehicle type", maxLength: 20 },
+      {
+        key: "seatCount",
+        label: "Seat count",
+        kind: "number",
+        min: 1,
+        max: 999,
+        step: 1,
+      },
       {
         key: "status",
         label: "Status",
@@ -184,8 +208,8 @@ const config: Record<Exclude<Section, "overview" | "reports">, Config> = {
     remove: true,
     fields: [
       { key: "name", label: "Full name" },
-      { key: "phone", label: "Phone" },
-      { key: "licenceNumber", label: "Licence number" },
+      { key: "phone", label: "Phone", maxLength: 15 },
+      { key: "licenceNumber", label: "Licence number", maxLength: 30 },
     ],
   },
   passengers: {
@@ -199,7 +223,7 @@ const config: Record<Exclude<Section, "overview" | "reports">, Config> = {
     edit: true,
     fields: [
       { key: "name", label: "Full name" },
-      { key: "phone", label: "Phone" },
+      { key: "phone", label: "Phone", maxLength: 15 },
     ],
   },
   maintenance: {
@@ -390,11 +414,18 @@ export function AdminPage({ email }: { email: string }) {
     setRefreshKey((value) => value + 1)
   }
   async function openEdit(row: Row | null) {
+    setError("")
+    setNotice("")
     setEdit({ row })
     setForm(
       row
         ? { ...row }
-        : { status: section === "announcements" ? "DRAFT" : "ACTIVE" }
+        : {
+            status: section === "announcements" ? "DRAFT" : "ACTIVE",
+            ...(section === "maintenance"
+              ? { scheduledDate: sriLankaDate() }
+              : {}),
+          }
     )
     if (section === "trips" || section === "maintenance") {
       try {
@@ -1008,8 +1039,11 @@ export function AdminPage({ email }: { email: string }) {
               {edit?.row ? "Edit" : "Add"} {activeConfig?.label.toLowerCase()}
             </DialogTitle>
             <DialogDescription>
-              Changes are saved to{" "}
-              {section === "announcements" ? "MongoDB" : "Oracle"}.
+              {section === "maintenance"
+                ? "Choose today or a future day without scheduled trips for this vehicle."
+                : section === "trips"
+                  ? "Use future departure times and an available vehicle and driver. Trips with booking history cannot be rescheduled."
+                  : "Update the details below and save your changes."}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={submit} className="space-y-4">
@@ -1025,6 +1059,7 @@ export function AdminPage({ email }: { email: string }) {
                       id={`admin-${field.key}`}
                       required
                       minLength={10}
+                      maxLength={1000}
                       value={String(form[field.key] ?? "")}
                       onChange={(event) =>
                         setForm({ ...form, [field.key]: event.target.value })
@@ -1068,12 +1103,36 @@ export function AdminPage({ email }: { email: string }) {
                             </option>
                           ))}
                     </select>
+                  ) : field.kind === "date" ? (
+                    <DatePicker
+                      id={`admin-${field.key}`}
+                      required
+                      value={String(form[field.key] ?? "")}
+                      minDate={sriLankaDate()}
+                      onChange={(value) =>
+                        setForm({ ...form, [field.key]: value })
+                      }
+                    />
                   ) : (
                     <Input
                       id={`admin-${field.key}`}
                       required
                       type={field.kind ?? "text"}
-                      step={field.kind === "number" ? "0.01" : undefined}
+                      step={
+                        field.kind === "number"
+                          ? (field.step ?? 0.01)
+                          : undefined
+                      }
+                      min={
+                        field.min ??
+                        (field.kind === "datetime-local"
+                          ? `${sriLankaDate()}T00:00`
+                          : undefined)
+                      }
+                      max={field.max}
+                      maxLength={
+                        field.maxLength ?? (field.kind ? undefined : 100)
+                      }
                       value={String(form[field.key] ?? "")}
                       onChange={(event) =>
                         setForm({
@@ -1160,6 +1219,7 @@ export function AdminPage({ email }: { email: string }) {
                   type="number"
                   min="0"
                   step="0.01"
+                  max="99999999.99"
                   required
                   value={maintenanceCost}
                   onChange={(event) => setMaintenanceCost(event.target.value)}

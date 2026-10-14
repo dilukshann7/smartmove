@@ -4,6 +4,7 @@ import type { Connection } from "oracledb";
 import { newRecordId } from "./record-id";
 import { cancelPassengerBooking } from "./booking-actions";
 import type { AdminResource } from "./admin-data";
+import { sriLankaDate } from "../admin-reports";
 
 type Form = Record<string, unknown>;
 function string(value: unknown, label: string, max = 100) {
@@ -16,9 +17,16 @@ function id(value: unknown, label = "record") {
     throw new Error(`Choose a valid ${label}.`);
   return value;
 }
-function amount(value: unknown, label: string) {
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0)
+function amount(value: unknown, label: string, allowZero = false) {
+  if (
+    typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    (allowZero ? value < 0 : value <= 0) ||
+    value > 99_999_999.99
+  )
     throw new Error(`Enter a valid ${label}.`);
+  if (Math.abs(value * 100 - Math.round(value * 100)) > 0.000001)
+    throw new Error(`Enter a valid ${label} with up to two decimal places.`);
   return value;
 }
 function localDate(value: unknown, time = false) {
@@ -27,6 +35,13 @@ function localDate(value: unknown, time = false) {
     !(time ? /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/ : /^\d{4}-\d{2}-\d{2}$/).test(
       text,
     )
+  )
+    throw new Error("Choose a valid Sri Lanka date and time.");
+  const parsed = new Date(time ? `${text}:00Z` : `${text}T00:00:00Z`);
+  if (
+    text.startsWith("0000-") ||
+    Number.isNaN(parsed.getTime()) ||
+    parsed.toISOString().slice(0, text.length) !== text
   )
     throw new Error("Choose a valid Sri Lanka date and time.");
   return text;
@@ -43,6 +58,10 @@ export async function mutateAdminResource(
     const fare = method === "DELETE" ? 0 : amount(form.baseFare, "fare");
     if (method === "POST") {
       const created = newRecordId();
+      const origin = string(form.origin, "origin", 50);
+      const destination = string(form.destination, "destination", 50);
+      if (origin.toUpperCase() === destination.toUpperCase())
+        throw new Error("Choose different origin and destination locations.");
       await connection.execute(
         `BEGIN
           smartmove_database.add_route(
@@ -56,8 +75,8 @@ export async function mutateAdminResource(
         {
           id: created,
           name,
-          origin: string(form.origin, "origin", 50),
-          destination: string(form.destination, "destination", 50),
+          origin,
+          destination,
           fare,
         },
       );
@@ -89,6 +108,7 @@ export async function mutateAdminResource(
       const registration = string(form.registrationNumber, "registration", 20);
       const vehicleType = string(form.vehicleType, "vehicle type", 20);
       const seats = id(form.seatCount, "seat count");
+      if (seats > 999) throw new Error("Enter a seat count between 1 and 999.");
       if (method === "POST") {
         const created = newRecordId();
         await connection.execute(
@@ -173,6 +193,8 @@ export async function mutateAdminResource(
       const driverId = id(form.driverId, "driver");
       const departureAt = localDate(form.departureAt, true);
       const arrivalAt = localDate(form.arrivalAt, true);
+      if (arrivalAt <= departureAt)
+        throw new Error("Choose an arrival time after departure.");
       if (method === "POST") {
         const created = newRecordId();
         await connection.execute(
@@ -221,6 +243,8 @@ export async function mutateAdminResource(
     else {
       const type = string(form.type, "maintenance type");
       const scheduledDate = localDate(form.scheduledDate);
+      if (scheduledDate < sriLankaDate())
+        throw new Error("Choose today or a future date for maintenance.");
       if (method === "POST") {
         const created = newRecordId();
         await connection.execute(
@@ -433,8 +457,7 @@ export async function runAdminAction(connection: Connection, input: Form) {
   if (action === "complete_maintenance") {
     const cost =
       input.cost === "" || input.cost == null ? 0 : Number(input.cost);
-    if (!Number.isFinite(cost) || cost < 0)
-      throw new Error("Enter a valid maintenance cost.");
+    amount(cost, "maintenance cost", true);
     await connection.execute(
       `BEGIN
         smartmove_database.complete_maintenance(:id, :cost);

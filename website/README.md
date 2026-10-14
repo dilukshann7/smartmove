@@ -43,6 +43,8 @@ Cancellation releases every seat in the booking. For a paid booking, Oracle reco
 
 `node scripts/verify-finalization.mjs` runs the real TypeScript login/signup/search/booking and ADMIN query handlers against Oracle without a server. Thirteen check groups cover credentials, role separation, all ADMIN resources, future search, multi-seat booking, payment, cancellation and duplicate-refund prevention. Commits are suppressed on a single test connection and all test SQL is rolled back; it is not a browser or HTTP-server test.
 
+`node --env-file=.env.local scripts/verify-admin-workflows.mjs` checks the current admin save, delete, scheduling, payment, cancellation, refund, and announcement handlers. It verifies that procedure validation messages reach the forms instead of appearing as server outages. Oracle commits are suppressed and test rows/sessions roll back; the temporary private MongoDB announcement is removed. The maintenance date picker blocks past dates, and database procedures still enforce scheduling conflicts and record-state restrictions.
+
 The older Oracle rollback/concurrency scripts remain in `../database/database/oracle/tests/`, but assume trip 2 is future-dated. That historical trip has departed, so those fixtures need revision. The old `test-passenger-mongo.mjs`, `test-admin-queries.mjs`, `test-admin-announcements.mjs` and `test-admin-workflows.mjs` utilities are absent from this checkout and were not restored in this selected scope.
 
 Demo media is included in `public/uploads/`: two generated illustrations and a fictional vehicle record PDF. `node scripts/setup-demo-media.mjs` updates the seeded MongoDB file links and verifies the files exist. There is no upload interface.

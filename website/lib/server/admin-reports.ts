@@ -1,7 +1,11 @@
 import "server-only"
 
 import type { BindParameters, Connection } from "oracledb"
-import { oracledb } from "./oracle"
+import {
+  disableOracleOutput,
+  enableOracleOutput,
+  readOracleOutput,
+} from "./oracle-output"
 import {
   reportDefinitions,
   sriLankaDate,
@@ -95,44 +99,14 @@ async function runReportProcedure(
   type: ReportType,
   binds: BindParameters
 ) {
-  const lines: string[] = []
-  const batchSize = 100
   try {
     // Each request owns the output buffer on its existing admin connection.
-    await connection.execute(
-      "BEGIN DBMS_OUTPUT.DISABLE; DBMS_OUTPUT.ENABLE(NULL); END;"
-    )
+    await enableOracleOutput(connection)
     await connection.execute(procedureCalls[type], binds)
-    while (true) {
-      const result = await connection.execute(
-        "BEGIN DBMS_OUTPUT.GET_LINES(:lines, :lineCount); END;",
-        {
-          lines: {
-            dir: oracledb.BIND_OUT,
-            type: oracledb.STRING,
-            maxArraySize: batchSize,
-            maxSize: 32767,
-          },
-          lineCount: {
-            dir: oracledb.BIND_INOUT,
-            type: oracledb.NUMBER,
-            val: batchSize,
-          },
-        }
-      )
-      const output = result.outBinds as {
-        lines: (string | null)[]
-        lineCount: number
-      }
-      lines.push(
-        ...output.lines.slice(0, output.lineCount).map((line) => line ?? "")
-      )
-      if (output.lineCount < batchSize) break
-    }
-    return lines
+    return await readOracleOutput(connection)
   } finally {
     // Clear output before the pooled connection is used by another request.
-    await connection.execute("BEGIN DBMS_OUTPUT.DISABLE; END;")
+    await disableOracleOutput(connection)
   }
 }
 

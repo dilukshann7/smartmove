@@ -529,7 +529,9 @@ export function AdminPage({ email }: { email: string }) {
                 ? "Feedback marked as resolved."
                 : action.name === "reopen_feedback"
                   ? "Feedback reopened."
-                  : "Action completed."
+                  : action.name === "complete_trip"
+                    ? "Trip marked as completed. Passengers can now review their journey."
+                    : "Action completed."
       )
       refresh()
     } catch (cause) {
@@ -925,6 +927,12 @@ export function AdminPage({ email }: { email: string }) {
                                         <Button
                                           variant="outline"
                                           size="sm"
+                                          disabled={busy || !row.canComplete}
+                                          title={
+                                            row.canComplete
+                                              ? "Mark this journey as completed"
+                                              : "Available after the scheduled arrival time"
+                                          }
                                           onClick={() =>
                                             setAction({
                                               name: "complete_trip",
@@ -932,11 +940,12 @@ export function AdminPage({ email }: { email: string }) {
                                             })
                                           }
                                         >
-                                          Complete
+                                          Mark completed
                                         </Button>
                                         <Button
                                           variant="outline"
                                           size="sm"
+                                          disabled={busy}
                                           onClick={() =>
                                             setAction({
                                               name: "cancel_trip",
@@ -1093,6 +1102,13 @@ export function AdminPage({ email }: { email: string }) {
                 <p className="mt-3 text-xs text-[#8b9bad]">
                   Refund records represent full amounts. Actual payouts happen
                   outside SmartMove.
+                </p>
+              )}
+              {section === "trips" && (
+                <p className="mt-3 text-xs text-[#8b9bad]">
+                  Use Mark completed after the scheduled arrival time. This
+                  closes unpaid bookings and lets passengers review confirmed
+                  journeys.
                 </p>
               )}
             </>
@@ -1260,13 +1276,15 @@ export function AdminPage({ email }: { email: string }) {
                   ? "All seats in this booking will be released. A full refund is recorded if paid."
                   : action?.name === "record_refund"
                     ? "Record the full eligible refund. Actual payout happens outside SmartMove."
-                    : action?.name === "reply_feedback"
-                      ? "Your reply will appear in the passenger's feedback history."
-                      : action?.name === "resolve_feedback"
-                        ? "Mark this feedback as resolved. The message and staff reply will be kept."
-                        : action?.name === "reopen_feedback"
-                          ? "Reopen this feedback for follow-up."
-                          : "Confirm this operation."}
+                    : action?.name === "complete_trip"
+                      ? "Mark this journey as completed. Unpaid bookings will be cancelled and passengers with confirmed bookings can leave a review."
+                      : action?.name === "reply_feedback"
+                        ? "Your reply will appear in the passenger's feedback history."
+                        : action?.name === "resolve_feedback"
+                          ? "Mark this feedback as resolved. The message and staff reply will be kept."
+                          : action?.name === "reopen_feedback"
+                            ? "Reopen this feedback for follow-up."
+                            : "Confirm this operation."}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={submitAction} className="space-y-4">

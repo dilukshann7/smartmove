@@ -53,6 +53,8 @@ const queries: Record<
         TO_CHAR(t.arrival_at, 'YYYY-MM-DD"T"HH24:MI') "arrivalAt",
         t.fare "fare",
         t.status "status",
+        CASE WHEN t.status = 'SCHEDULED' AND t.arrival_at <= SYSDATE
+          THEN 1 ELSE 0 END "canComplete",
         (
           SELECT
             COUNT(*)

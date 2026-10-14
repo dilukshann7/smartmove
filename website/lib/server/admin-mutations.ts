@@ -486,12 +486,19 @@ export async function runAdminAction(connection: Connection, input: Form) {
     return { changed: 1, refundCount };
   }
   if (action === "complete_trip") {
+    const tripId = id(input.id, "trip");
+    // Serialize completion with booking/cancellation workflows; the procedure
+    // validates the status and arrival time using the database clock.
+    await connection.execute(
+      `SELECT trip_id FROM smartmove_database.trips WHERE trip_id = :id FOR UPDATE`,
+      { id: tripId },
+    );
     await connection.execute(
       `BEGIN
         smartmove_database.complete_trip(:id);
       END;`,
       {
-        id: id(input.id, "trip"),
+        id: tripId,
       },
     );
     return { completed: true };

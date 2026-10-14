@@ -19,6 +19,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { lkr, tripDate, tripTime } from "@/lib/trip-format"
 import type { TripDetails } from "@/lib/trip-types"
+import { TripImageGallery } from "./trip-image-gallery"
 
 export function TripDetailsPage({ tripId }: { tripId: string }) {
   const router = useRouter()
@@ -137,6 +138,11 @@ export function TripDetailsPage({ tripId }: { tripId: string }) {
           </div>
           <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_370px]">
             <div className="space-y-7">
+              <TripImageGallery
+                key={trip.id}
+                tripId={trip.id}
+                label={`${trip.origin} to ${trip.destination}`}
+              />
               <Card className="rounded-[26px] border-[#e5ebf3] bg-white shadow-sm">
                 <CardContent className="p-6 sm:p-8">
                   <h2 className="mb-6 text-xl font-semibold">

@@ -16,7 +16,8 @@ export async function adminRequest(
   write: boolean,
   task: (
     connection: Connection,
-    input: Record<string, unknown>
+    input: Record<string, unknown>,
+    admin: NonNullable<Awaited<ReturnType<typeof getAdmin>>>
   ) => Promise<unknown>
 ) {
   if (write && !sameOrigin(request))
@@ -51,7 +52,7 @@ export async function adminRequest(
       await enableOracleOutput(connection)
       outputEnabled = true
     }
-    const result = await task(connection, input)
+    const result = await task(connection, input, admin)
     if (write) await connection.commit()
     return NextResponse.json(
       { result },

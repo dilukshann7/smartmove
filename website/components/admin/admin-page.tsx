@@ -10,6 +10,7 @@ import {
   CalendarDays,
   CreditCard,
   FileBarChart,
+  ImagePlus,
   LayoutDashboard,
   LogOut,
   MapPinned,
@@ -38,6 +39,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { lkr } from "@/lib/trip-format"
 import { sriLankaDate } from "@/lib/admin-reports"
 import { AdminReports } from "./admin-reports"
+import { AdminMediaDialog } from "./admin-media-dialog"
+import type { MediaResource } from "@/lib/media-types"
 
 type Section =
   | "overview"
@@ -360,6 +363,11 @@ export function AdminPage({ email }: { email: string }) {
   const [paymentMethod, setPaymentMethod] = useState("CASH")
   const [maintenanceCost, setMaintenanceCost] = useState("")
   const [feedbackReply, setFeedbackReply] = useState("")
+  const [media, setMedia] = useState<{
+    resource: MediaResource
+    id: number
+    label: string
+  } | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
   useEffect(() => {
@@ -893,6 +901,27 @@ export function AdminPage({ email }: { email: string }) {
                               ))}
                               <td className="sticky right-0 z-10 w-52 min-w-52 border-l border-[#eaf0f7] bg-white px-4 py-3">
                                 <div className="flex flex-wrap gap-1.5">
+                                  {(section === "vehicles" ||
+                                    section === "trips") && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      disabled={busy}
+                                      onClick={() =>
+                                        setMedia({
+                                          resource: section,
+                                          id: Number(row.id),
+                                          label: String(
+                                            row.routeName ??
+                                              row.registrationNumber ??
+                                              row.id
+                                          ),
+                                        })
+                                      }
+                                    >
+                                      <ImagePlus className="size-4" /> Images
+                                    </Button>
+                                  )}
                                   {activeConfig.edit &&
                                     (section !== "maintenance" ||
                                       row.status === "SCHEDULED") &&
@@ -1115,6 +1144,13 @@ export function AdminPage({ email }: { email: string }) {
           )}
         </main>
       </div>
+      {media && (
+        <AdminMediaDialog
+          key={`${media.resource}-${media.id}`}
+          target={media}
+          onClose={() => setMedia(null)}
+        />
+      )}
       <Dialog
         open={edit !== null}
         onOpenChange={(open) => {

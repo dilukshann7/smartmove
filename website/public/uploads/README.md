@@ -8,7 +8,7 @@ These files are fictional demonstration content for the coursework. Both picture
 | `/uploads/demo-trip.png`           | Generic white passenger minibus on a southern coastal road toward Galle                                    |
 | `/uploads/demo-vehicle-record.pdf` | One-page vehicle document using the fictional Oracle record for vehicle 1, DEMO-001, VAN, 12 seats, ACTIVE |
 
-MongoDB stores the file URLs in `vehicle_assets` and `trip_media`. Next.js serves these files from `public/`. Media upload or editing screens have not been added.
+MongoDB stores the demo file URLs in `vehicle_assets` and `trip_media`. Next.js serves these demo files from `public/`. Admins can add or remove images using **Images** in Vehicles and Trip schedules. New uploads are stored in MongoDB GridFS and served through `/api/media/[id]`; passenger trip pages display both trip and vehicle images.
 
 ## Image prompts
 

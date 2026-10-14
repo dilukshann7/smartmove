@@ -47,7 +47,11 @@ Cancellation releases every seat in the booking. For a paid booking, Oracle reco
 
 The older Oracle rollback/concurrency scripts remain in `../database/database/oracle/tests/`, but assume trip 2 is future-dated. That historical trip has departed, so those fixtures need revision. The old `test-passenger-mongo.mjs`, `test-admin-queries.mjs`, `test-admin-announcements.mjs` and `test-admin-workflows.mjs` utilities are absent from this checkout and were not restored in this selected scope.
 
-Demo media is included in `public/uploads/`: two generated illustrations and a fictional vehicle record PDF. `node scripts/setup-demo-media.mjs` updates the seeded MongoDB file links and verifies the files exist. There is no upload interface.
+Admins can select **Images** in Vehicles or Trip schedules to upload JPG, PNG or WebP photos (up to 5 MB each), add a caption, preview photos, or remove them. Images are decoded, resized, and stored as WebP files in MongoDB GridFS (`media_files.files` and `media_files.chunks`); links and captions are kept in `vehicle_assets` or `trip_media` using the corresponding Oracle ID. The passenger trip page shows the trip's photos and its assigned vehicle's photos. Upload and removal require an admin session.
+
+Demo media remains in `public/uploads/`: two generated illustrations and a fictional vehicle record PDF. Existing MongoDB `/uploads/` image links also appear in the galleries. Vehicle documents are retained separately; the upload screen accepts images only.
+
+`node --env-file=.env.local scripts/verify-admin-media.mjs` checks the real image handlers without a server: admin permissions, file validation and size limits, GridFS storage/downloads, resized images, passenger galleries, and removal. Its Oracle session rolls back and temporary MongoDB files and metadata are removed.
 
 The project `AGENTS.md` asks not to start a development server or run a build unless explicitly requested. Typecheck and targeted lint are available through `npm run typecheck` and `npx eslint <paths>`.
 

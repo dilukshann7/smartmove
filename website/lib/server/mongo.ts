@@ -37,6 +37,10 @@ export async function getMongoDb(): Promise<Db> {
     db
       .collection("announcements")
       .createIndex({ audience: 1, status: 1, publishedAt: -1 }),
+    db.collection("vehicle_assets").createIndex({ vehicleId: 1, assetType: 1, createdAt: -1 }),
+    db.collection("trip_media").createIndex({ tripId: 1, mediaType: 1, createdAt: -1 }),
+    db.collection("vehicle_assets").createIndex({ fileId: 1 }, { sparse: true }),
+    db.collection("trip_media").createIndex({ fileId: 1 }, { sparse: true }),
   ]).then(() => undefined);
   try {
     await globalMongo.smartmoveMongoIndexes;

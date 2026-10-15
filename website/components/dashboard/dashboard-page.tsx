@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import {
@@ -29,7 +31,7 @@ export function DashboardPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
   useEffect(() => {
-    fetch("/api/dashboard", { cache: "no-store" })
+    apiFetch("/api/dashboard", { cache: "no-store" })
       .then(async (response) => {
         const body = await response.json()
         if (!response.ok) throw new Error(body.error)

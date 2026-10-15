@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { ArrowRight, Ticket } from "lucide-react"
@@ -23,7 +25,7 @@ export function BookingsPage() {
   const [error, setError] = useState("")
   const [signedOut, setSignedOut] = useState(false)
   useEffect(() => {
-    fetch("/api/bookings", { cache: "no-store" })
+    apiFetch("/api/bookings", { cache: "no-store" })
       .then(async (response) => {
         if (response.status === 401) {
           setSignedOut(true)

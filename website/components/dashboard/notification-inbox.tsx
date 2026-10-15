@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { Bell, Check, RefreshCw } from "lucide-react"
@@ -20,7 +22,7 @@ export function NotificationInbox() {
   const [error, setError] = useState("")
   async function load() {
     try {
-      const response = await fetch("/api/notifications", { cache: "no-store" })
+      const response = await apiFetch("/api/notifications", { cache: "no-store" })
       const data = await response.json()
       if (!response.ok)
         throw new Error(data.error ?? "Unable to load notifications.")
@@ -35,7 +37,7 @@ export function NotificationInbox() {
     }
   }
   useEffect(() => {
-    fetch("/api/notifications", { cache: "no-store" })
+    apiFetch("/api/notifications", { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json()
         if (!response.ok)
@@ -53,7 +55,7 @@ export function NotificationInbox() {
   }, [])
   async function markRead(id: string) {
     try {
-      const response = await fetch(`/api/notifications/${id}`, {
+      const response = await apiFetch(`/api/notifications/${id}`, {
         method: "PATCH",
       })
       if (!response.ok) throw new Error("Unable to mark notification read.")

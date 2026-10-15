@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch, logout as clearLogin, onAuthChange } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState, type ReactNode } from "react"
@@ -20,21 +22,30 @@ export function SiteShell({ children }: { children: ReactNode }) {
   const [admin, setAdmin] = useState<{ email: string } | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
   useEffect(() => {
-    fetch("/api/auth/me", { cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
+    let controller: AbortController
+    const check = async () => {
+      controller?.abort()
+      controller = new AbortController()
+      const signal = controller.signal
+      try {
+        const response = await apiFetch("/api/auth/me", { cache: "no-store", signal })
+        if (signal.aborted) return
+        if (!response.ok && response.status !== 401)
+          throw new Error("Unable to check your sign-in. Please reload to try again.")
+        const data = response.ok ? await response.json() : null
+        if (signal.aborted) return
         setPassenger(data?.passenger ?? null)
         setAdmin(data?.admin ?? null)
-      })
-      .catch(() => {
-        setPassenger(null)
-        setAdmin(null)
-      })
-  }, [])
+      } catch { /* Keep the current header during temporary service outages. */ }
+    }
+    void check()
+    const unsubscribe = onAuthChange(() => { void check() })
+    return () => { controller?.abort(); unsubscribe() }
+  }, [pathname])
 
   async function logout() {
-    const response = await fetch("/api/auth/logout", { method: "POST" })
-    if (response.ok) {
+    try { await clearLogin() }
+    finally {
       setPassenger(null)
       setAdmin(null)
       setMenuOpen(false)

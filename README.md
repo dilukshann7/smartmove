@@ -35,7 +35,15 @@ ORACLE_PASSWORD=your_app_password
 ORACLE_CONNECT_STRING=localhost:1521/XEPDB1
 MONGODB_URI=mongodb://127.0.0.1:27017
 MONGODB_DB=smartmove
+AUTH_TOKEN_SECRET=<base64-encoded 32 random bytes>
+NOTIFICATIONS_START_AT=<ISO timestamp with timezone>
 ```
+
+Generate the signing secret once with `node -p "require('node:crypto').randomBytes(32).toString('base64')"`. For a new installation, generate the notification start date once with `node -p "new Date().toISOString()"`. Keep both values unchanged across restarts. Existing installations preserve their current cutoff using the migration below.
+
+Passenger and admin login tokens are signed by the server, expire after seven days, and are stored in browser localStorage. API calls send bearer tokens and check the current Oracle user role. Logout clears the browser token; it does not revoke copied tokens before expiry.
+
+For an existing installation with the three old website-support tables, follow the [browser-auth migration instructions](website/README.md#browser-authentication-and-existing-installations). Oracle retains the 13 core tables; no session collection is added to MongoDB.
 
 4. Install dependencies and start the website:
 

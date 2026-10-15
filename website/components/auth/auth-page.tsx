@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch, storeAuth } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
@@ -42,7 +44,7 @@ export function AuthPage({
     setSubmitting(true)
     setError("")
     try {
-      const response = await fetch(`/api/auth/${mode}`, {
+      const response = await apiFetch(`/api/auth/${mode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
@@ -53,6 +55,7 @@ export function AuthPage({
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error ?? "Something went wrong.")
+      storeAuth({ token: data.token, expiresAt: data.expiresAt })
       const destination =
         data.role === "ADMIN"
           ? safeNext.startsWith("/admin")

@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useEffect, useState, type FormEvent } from "react"
 import { UserRound } from "lucide-react"
@@ -19,7 +21,7 @@ export function ProfilePage() {
   const [error, setError] = useState("")
   const [saved, setSaved] = useState(false)
   useEffect(() => {
-    fetch("/api/profile", { cache: "no-store" })
+    apiFetch("/api/profile", { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json()
         if (!response.ok) throw new Error(data.error)
@@ -36,7 +38,7 @@ export function ProfilePage() {
     setError("")
     setSaved(false)
     try {
-      const response = await fetch("/api/profile", {
+      const response = await apiFetch("/api/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, phone }),

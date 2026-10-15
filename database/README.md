@@ -48,6 +48,8 @@ The schema is normalized to **Third Normal Form (3NF)** and directly maps to the
 | `feedback_records`       | `feedback_id`    | Relational reference for reviews and complaints linked to completed bookings.                       |
 | `booking_status_history` | -                | Audit log capturing all booking status transitions with timestamps.                                 |
 
+Website authentication uses signed tokens in browser localStorage. Oracle keeps these 13 core tables; there are no extra session or notification-configuration tables. Login views/procedures remain. The notification cutoff lives in server-only website configuration. See the [website migration guide](../website/README.md#browser-authentication-and-existing-installations) for existing installations and support-table backups.
+
 #### Database Trigger:
 
 - **`trg_booking_status_history`**: Automatically captures any update to `bookings.status` and logs `old_status`, `new_status`, and `changed_at` into `booking_status_history`.

@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { ArrowLeft, BusFront, Clock3, Ticket } from "lucide-react"
@@ -28,7 +30,7 @@ export function BookingDetailsPage({ bookingId }: { bookingId: string }) {
   const [cancelling, setCancelling] = useState(false)
   const [cancelOpen, setCancelOpen] = useState(false)
   useEffect(() => {
-    fetch(`/api/bookings/${bookingId}`, { cache: "no-store" })
+    apiFetch(`/api/bookings/${bookingId}`, { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json()
         if (!response.ok) throw new Error(data.error)
@@ -40,7 +42,7 @@ export function BookingDetailsPage({ bookingId }: { bookingId: string }) {
   async function refreshStatus() {
     setRefreshing(true)
     try {
-      const response = await fetch(`/api/bookings/${bookingId}`, {
+      const response = await apiFetch(`/api/bookings/${bookingId}`, {
         cache: "no-store",
       })
       const data = await response.json()
@@ -59,7 +61,7 @@ export function BookingDetailsPage({ bookingId }: { bookingId: string }) {
     setCancelling(true)
     setError("")
     try {
-      const response = await fetch(`/api/bookings/${bookingId}/cancel`, {
+      const response = await apiFetch(`/api/bookings/${bookingId}/cancel`, {
         method: "POST",
       })
       const data = await response.json()

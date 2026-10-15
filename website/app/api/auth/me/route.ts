@@ -1,3 +1,4 @@
+import { hasBearerToken } from "@/lib/server/auth-token"
 import { NextRequest, NextResponse } from "next/server"
 import { getPassenger } from "@/lib/server/auth"
 import { getConnection } from "@/lib/server/oracle"
@@ -11,6 +12,8 @@ export async function GET(request: NextRequest) {
     connection = await getConnection()
     const passenger = await getPassenger(request, connection)
     const admin = await getAdmin(request, connection)
+    if (hasBearerToken(request) && !passenger && !admin)
+      return NextResponse.json({ error: "Sign in again." }, { status: 401, headers: { "Cache-Control": "no-store" } })
     return NextResponse.json(
       { passenger, admin },
       { headers: { "Cache-Control": "no-store" } }

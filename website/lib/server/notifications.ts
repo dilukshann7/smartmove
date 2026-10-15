@@ -35,6 +35,10 @@ export async function reconcileNotifications(
   userId: number,
   passengerId: number
 ) {
+  const configured = process.env.NOTIFICATIONS_START_AT
+  const startedAt = configured && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[+-]\d{2}:\d{2})$/.test(configured) ? new Date(configured) : null
+  if (!startedAt || !Number.isFinite(startedAt.getTime()))
+    throw new Error("NOTIFICATIONS_START_AT must be a valid ISO timestamp")
   const bookings = await connection.execute<{
     BOOKING_ID: number
     BOOKED_AT: Date
@@ -43,11 +47,10 @@ export async function reconcileNotifications(
       b.booking_id,
       b.booked_at
     FROM smartmove_database.bookings b
-    CROSS JOIN smartmove_database.web_notification_baseline n
     WHERE
       b.passenger_id = :passengerId
-      AND b.booked_at >= n.started_at`,
-    { passengerId }
+      AND b.booked_at >= :startedAt`,
+    { passengerId, startedAt }
   )
   const changes = await connection.execute<{
     BOOKING_ID: number
@@ -61,10 +64,9 @@ export async function reconcileNotifications(
     FROM smartmove_database.booking_status_history h
     JOIN smartmove_database.bookings b
       ON b.booking_id = h.booking_id
-    CROSS JOIN smartmove_database.web_notification_baseline n
     WHERE
       b.passenger_id = :passengerId
-      AND h.changed_at >= n.started_at
+      AND h.changed_at >= :startedAt
       AND h.new_status IN ('CONFIRMED', 'CANCELLED')
     UNION ALL
     SELECT
@@ -72,13 +74,12 @@ export async function reconcileNotifications(
       'CANCELLED',
       b.booked_at + (30 / 1440)
     FROM smartmove_database.bookings b
-    CROSS JOIN smartmove_database.web_notification_baseline n
     WHERE
       b.passenger_id = :passengerId
       AND b.status = 'PENDING'
       AND b.booked_at <= SYSDATE - (30 / 1440)
-      AND b.booked_at + (30 / 1440) >= n.started_at`,
-    { passengerId }
+      AND b.booked_at + (30 / 1440) >= :startedAt`,
+    { passengerId, startedAt }
   )
   const refunds = await connection.execute<{
     REFUND_ID: number
@@ -96,11 +97,10 @@ export async function reconcileNotifications(
       ON p.payment_id = r.payment_id
     JOIN smartmove_database.bookings b
       ON b.booking_id = p.booking_id
-    CROSS JOIN smartmove_database.web_notification_baseline n
     WHERE
       b.passenger_id = :passengerId
-      AND r.refunded_at >= n.started_at`,
-    { passengerId }
+      AND r.refunded_at >= :startedAt`,
+    { passengerId, startedAt }
   )
   const events: Event[] = [
     ...(bookings.rows ?? []).map((row) => ({

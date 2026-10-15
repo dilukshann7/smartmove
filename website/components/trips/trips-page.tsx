@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState, type FormEvent } from "react"
@@ -52,7 +54,7 @@ export function TripsPage({ initialSearch }: { initialSearch: Search }) {
     )
       return
     const controller = new AbortController()
-    fetch(`/api/trips?${queryString}`, {
+    apiFetch(`/api/trips?${queryString}`, {
       signal: controller.signal,
       cache: "no-store",
     })

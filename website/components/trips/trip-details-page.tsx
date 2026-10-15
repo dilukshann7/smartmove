@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -37,7 +39,7 @@ export function TripDetailsPage({ tripId }: { tripId: string }) {
   useEffect(() => {
     const controller = new AbortController()
     Promise.all([
-      fetch(`/api/trips/${tripId}`, {
+      apiFetch(`/api/trips/${tripId}`, {
         signal: controller.signal,
         cache: "no-store",
       }).then(async (response) => {
@@ -45,7 +47,7 @@ export function TripDetailsPage({ tripId }: { tripId: string }) {
         if (!response.ok) throw new Error(data.error)
         return data.trip as TripDetails
       }),
-      fetch("/api/auth/me", {
+      apiFetch("/api/auth/me", {
         signal: controller.signal,
         cache: "no-store",
       }).then((response) => (response.ok ? response.json() : null)),
@@ -78,7 +80,7 @@ export function TripDetailsPage({ tripId }: { tripId: string }) {
     setSubmitting(true)
     setError("")
     try {
-      const response = await fetch("/api/bookings", {
+      const response = await apiFetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tripId: trip.id, seats: selected }),
@@ -88,7 +90,7 @@ export function TripDetailsPage({ tripId }: { tripId: string }) {
       router.push(`/bookings/${data.bookingId}`)
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Booking failed.")
-      const response = await fetch(`/api/trips/${tripId}`, {
+      const response = await apiFetch(`/api/trips/${tripId}`, {
         cache: "no-store",
       })
       if (response.ok) {

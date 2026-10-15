@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Image from "next/image"
 import { useEffect, useState } from "react"
 import { ImageIcon } from "lucide-react"
@@ -17,7 +19,7 @@ export function TripImageGallery({
   const [unavailable, setUnavailable] = useState(false)
   useEffect(() => {
     const controller = new AbortController()
-    fetch(`/api/trips/${tripId}/media`, {
+    apiFetch(`/api/trips/${tripId}/media`, {
       cache: "no-store",
       signal: controller.signal,
     })

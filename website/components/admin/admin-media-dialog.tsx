@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Image from "next/image"
 import { useEffect, useState, type FormEvent } from "react"
 import { ImagePlus, Trash2, Upload } from "lucide-react"
@@ -36,7 +38,7 @@ export function AdminMediaDialog({
 
   useEffect(() => {
     const controller = new AbortController()
-    fetch(`/api/admin/media?resource=${target.resource}&id=${target.id}`, {
+    apiFetch(`/api/admin/media?resource=${target.resource}&id=${target.id}`, {
       cache: "no-store",
       signal: controller.signal,
     })
@@ -74,7 +76,7 @@ export function AdminMediaDialog({
       form.set("id", String(target.id))
       form.set("image", selection.file)
       form.set("caption", caption)
-      const response = await fetch("/api/admin/media", {
+      const response = await apiFetch("/api/admin/media", {
         method: "POST",
         body: form,
       })
@@ -100,7 +102,7 @@ export function AdminMediaDialog({
     setError("")
     setNotice("")
     try {
-      const response = await fetch("/api/admin/media", {
+      const response = await apiFetch("/api/admin/media", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

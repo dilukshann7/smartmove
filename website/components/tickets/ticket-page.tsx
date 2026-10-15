@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { ArrowLeft, BusFront, MapPin, Ticket } from "lucide-react"
@@ -14,7 +16,7 @@ export function TicketPage({ ticketId }: { ticketId: string }) {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(true)
   useEffect(() => {
-    fetch(`/api/tickets/${ticketId}`, { cache: "no-store" })
+    apiFetch(`/api/tickets/${ticketId}`, { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json()
         if (!response.ok) throw new Error(data.error)

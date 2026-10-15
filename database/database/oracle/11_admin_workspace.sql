@@ -1,15 +1,6 @@
 WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
 ALTER SESSION SET CONTAINER = XEPDB1;
 
-CREATE TABLE smartmove_database.web_admin_sessions (
-    session_hash VARCHAR2(64) PRIMARY KEY,
-    user_id NUMBER NOT NULL REFERENCES smartmove_database.app_users(user_id),
-    created_at TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
-    expires_at TIMESTAMP NOT NULL
-);
-CREATE INDEX smartmove_database.web_admin_sessions_expiry_idx
-    ON smartmove_database.web_admin_sessions(expires_at);
-
 CREATE OR REPLACE VIEW smartmove_database.web_admin_login AS
 SELECT user_id, email, password_hash
 FROM smartmove_database.app_users
@@ -21,7 +12,6 @@ ALTER SESSION SET CURRENT_SCHEMA = SMARTMOVE_DATABASE;
 ALTER SESSION SET CURRENT_SCHEMA = SYS;
 
 GRANT SELECT ON smartmove_database.web_admin_login TO smartmove_database_app;
-GRANT SELECT, INSERT, DELETE ON smartmove_database.web_admin_sessions TO smartmove_database_app;
 GRANT SELECT ON smartmove_database.app_users TO smartmove_database_app;
 GRANT SELECT ON smartmove_database.passengers TO smartmove_database_app;
 GRANT SELECT ON smartmove_database.drivers TO smartmove_database_app;

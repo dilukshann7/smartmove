@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import { useEffect, useRef, useState, type FormEvent } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -117,13 +119,13 @@ export function HomePage() {
   const destinationRef = useRef<HTMLInputElement>(null)
   const dateTriggerRef = useRef<HTMLButtonElement>(null)
   useEffect(() => {
-    fetch("/api/auth/me", { cache: "no-store" })
+    apiFetch("/api/auth/me", { cache: "no-store" })
       .then((response) => response.json())
       .then((data) =>
         setSignedIn(data.admin ? "ADMIN" : data.passenger ? "PASSENGER" : null)
       )
       .catch(() => setSignedIn(null))
-    fetch("/api/announcements", { cache: "no-store" })
+    apiFetch("/api/announcements", { cache: "no-store" })
       .then(async (response) => {
         if (!response.ok) throw new Error("Announcements unavailable")
         const data = await response.json()

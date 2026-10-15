@@ -1,13 +1,12 @@
+import { clearLegacyCookies } from "@/lib/server/auth-token"
 import { NextRequest, NextResponse } from "next/server"
 import {
   createSession,
   hashPassword,
   sameOrigin,
-  setSessionCookie,
 } from "@/lib/server/auth"
 import { getConnection } from "@/lib/server/oracle"
 import { newRecordId } from "@/lib/server/record-id"
-import { clearAdminCookie } from "@/lib/server/admin-auth"
 
 export const runtime = "nodejs"
 
@@ -73,14 +72,13 @@ export async function POST(request: NextRequest) {
         passengerId,
       }
     )
-    const token = await createSession(connection, passengerId)
+    const session = await createSession(connection, passengerId)
     await connection.commit()
     const response = NextResponse.json(
-      { passenger: { name, email } },
+      { ...session, passenger: { name, email }, role: "PASSENGER", destination: "/dashboard" },
       { status: 201 }
     )
-    setSessionCookie(response, token)
-    clearAdminCookie(response)
+    clearLegacyCookies(response)
     return response
   } catch (error) {
     await connection?.rollback()

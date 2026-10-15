@@ -3,15 +3,6 @@
 WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
 ALTER SESSION SET CONTAINER = XEPDB1;
 
-CREATE TABLE smartmove_database.web_sessions (
-    session_hash VARCHAR2(64) PRIMARY KEY,
-    passenger_id NUMBER NOT NULL REFERENCES smartmove_database.passengers(passenger_id),
-    created_at TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
-    expires_at TIMESTAMP NOT NULL
-);
-CREATE INDEX smartmove_database.web_sessions_expiry_idx
-    ON smartmove_database.web_sessions(expires_at);
-
 @@web_operations.sql
 
 CREATE OR REPLACE VIEW smartmove_database.web_passenger_login AS
@@ -39,7 +30,6 @@ GRANT SELECT ON smartmove_database.vehicles TO smartmove_database_app;
 GRANT SELECT ON smartmove_database.bookings TO smartmove_database_app;
 GRANT SELECT ON smartmove_database.tickets TO smartmove_database_app;
 GRANT SELECT ON smartmove_database.web_passenger_login TO smartmove_database_app;
-GRANT SELECT, INSERT, DELETE ON smartmove_database.web_sessions TO smartmove_database_app;
 GRANT EXECUTE ON smartmove_database.web_register_passenger TO smartmove_database_app;
 GRANT EXECUTE ON smartmove_database.create_booking TO smartmove_database_app;
 GRANT EXECUTE ON smartmove_database.reserve_seat TO smartmove_database_app;

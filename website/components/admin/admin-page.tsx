@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch, logout as clearLogin } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, type FormEvent } from "react"
@@ -378,7 +380,7 @@ export function AdminPage({ email }: { email: string }) {
         : section === "announcements"
           ? "/api/admin/announcements"
           : `/api/admin/${section}?q=${encodeURIComponent(search)}`
-    fetch(path, { cache: "no-store", signal: controller.signal })
+    apiFetch(path, { cache: "no-store", signal: controller.signal })
       .then(async (response) => {
         const data = await response.json()
         if (!response.ok)
@@ -399,7 +401,7 @@ export function AdminPage({ email }: { email: string }) {
   async function loadLookups() {
     const results = await Promise.all(
       ["routes", "vehicles", "drivers"].map(async (name) => {
-        const response = await fetch(`/api/admin/${name}`, {
+        const response = await apiFetch(`/api/admin/${name}`, {
           cache: "no-store",
         })
         const data = await response.json()
@@ -452,7 +454,7 @@ export function AdminPage({ email }: { email: string }) {
     setError("")
     setNotice("")
     try {
-      const response = await fetch(`/api/admin/${section}`, {
+      const response = await apiFetch(`/api/admin/${section}`, {
         method: edit.row ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -481,7 +483,7 @@ export function AdminPage({ email }: { email: string }) {
     setError("")
     setNotice("")
     try {
-      const response = await fetch(`/api/admin/${section}`, {
+      const response = await apiFetch(`/api/admin/${section}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: row.id }),
@@ -506,7 +508,7 @@ export function AdminPage({ email }: { email: string }) {
     setNotice("")
     try {
       const isFeedback = action.name.endsWith("_feedback")
-      const response = await fetch(
+      const response = await apiFetch(
         isFeedback ? "/api/admin/feedback" : "/api/admin/actions",
         {
           method: isFeedback ? "PATCH" : "POST",
@@ -553,7 +555,7 @@ export function AdminPage({ email }: { email: string }) {
     setBusy(true)
     setError("")
     try {
-      const response = await fetch("/api/admin/announcements", {
+      const response = await apiFetch("/api/admin/announcements", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -578,8 +580,8 @@ export function AdminPage({ email }: { email: string }) {
     }
   }
   async function logout() {
-    const response = await fetch("/api/auth/logout", { method: "POST" })
-    if (response.ok) {
+    try { await clearLogin() }
+    finally {
       router.push("/")
       router.refresh()
     }

@@ -71,7 +71,7 @@ try {
   ).rows[0]
   assert.ok(admin && booking, "An existing admin and booking are required.")
   const auth = load("lib/server/admin-auth.ts")
-  const token = await auth.createAdminSession(connection, admin.ID)
+  const { token } = await auth.createAdminSession(connection, admin.ID)
   const handlers = load("app/api/admin/[resource]/route.ts")
   const actions = load("app/api/admin/actions/route.ts")
   async function request(
@@ -88,7 +88,7 @@ try {
         origin: options.origin ?? "http://localhost",
         ...(options.anonymous
           ? {}
-          : { cookie: `${auth.ADMIN_COOKIE}=${token}` }),
+          : { authorization: `Bearer ${token}` }),
         ...(method === "GET" ? {} : { "content-type": "application/json" }),
       },
       ...(method === "GET" ? {} : { body: JSON.stringify(input) }),

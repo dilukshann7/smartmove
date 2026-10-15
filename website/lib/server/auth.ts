@@ -1,19 +1,17 @@
 import "server-only";
 
 import {
-  createHash,
   randomBytes,
   scrypt as scryptCallback,
   timingSafeEqual,
 } from "node:crypto";
 import { promisify } from "node:util";
 import type { Connection } from "oracledb";
-import type { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 export { sameOrigin } from "./same-origin";
 
 const scrypt = promisify(scryptCallback);
-const COOKIE = "smartmove_session";
-const SESSION_DAYS = 7;
+import { createAuthToken, readAuthToken } from "./auth-token";
 
 export async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -30,54 +28,22 @@ export async function verifyPassword(password: string, stored: string) {
   return expected.length === actual.length && timingSafeEqual(expected, actual);
 }
 
-function tokenHash(token: string) {
-  return createHash("sha256").update(token).digest("hex");
-}
-
-export async function createSession(
-  connection: Connection,
-  passengerId: number,
-) {
-  const token = randomBytes(32).toString("base64url");
-  await connection.execute(
-    `INSERT INTO smartmove_database.web_sessions (session_hash, passenger_id, expires_at)
-    VALUES (:sessionHash, :passengerId, SYSTIMESTAMP + INTERVAL '7' DAY)`,
-    { sessionHash: tokenHash(token), passengerId },
+export async function createSession(connection: Connection, passengerId: number) {
+  const result = await connection.execute<{ USER_ID: number }>(
+    `SELECT user_id FROM smartmove_database.web_passenger_login WHERE passenger_id = :passengerId`,
+    { passengerId },
   );
-  return token;
-}
-
-export function setSessionCookie(response: NextResponse, token: string) {
-  response.cookies.set(COOKIE, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: SESSION_DAYS * 24 * 60 * 60,
-  });
-}
-
-export function clearSessionCookie(response: NextResponse) {
-  response.cookies.set(COOKIE, "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
-}
-
-export function getSessionHash(request: NextRequest) {
-  const token = request.cookies.get(COOKIE)?.value;
-  return token && /^[A-Za-z0-9_-]{43}$/.test(token) ? tokenHash(token) : null;
+  const row = result.rows?.[0];
+  if (!row) throw new Error("Passenger account not found");
+  return createAuthToken(row.USER_ID, "PASSENGER");
 }
 
 export async function getPassenger(
   request: NextRequest,
   connection: Connection,
 ) {
-  const sessionHash = getSessionHash(request);
-  if (!sessionHash) return null;
+  const token = await readAuthToken(request);
+  if (!token || token.role !== "PASSENGER") return null;
   const result = await connection.execute<{
     USER_ID: number;
     PASSENGER_ID: number;
@@ -89,13 +55,9 @@ export async function getPassenger(
       u.passenger_id,
       u.full_name,
       u.email
-    FROM smartmove_database.web_sessions s
-    JOIN smartmove_database.web_passenger_login u
-      ON u.passenger_id = s.passenger_id
-    WHERE
-      s.session_hash = :sessionHash
-      AND s.expires_at > SYSTIMESTAMP`,
-    { sessionHash },
+    FROM smartmove_database.web_passenger_login u
+    WHERE u.user_id = :userId`,
+    { userId: token.userId },
   );
   const row = result.rows?.[0];
   return row

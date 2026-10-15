@@ -1,16 +1,13 @@
+import { clearLegacyCookies } from "@/lib/server/auth-token"
 import { NextRequest, NextResponse } from "next/server"
 import {
-  clearSessionCookie,
   createSession,
   sameOrigin,
-  setSessionCookie,
   verifyPassword,
 } from "@/lib/server/auth"
 import { getConnection } from "@/lib/server/oracle"
 import {
-  clearAdminCookie,
   createAdminSession,
-  setAdminCookie,
 } from "@/lib/server/admin-auth"
 
 export const runtime = "nodejs"
@@ -61,14 +58,14 @@ export async function POST(request: NextRequest) {
           { status: 401 }
         )
       }
-      const token = await createAdminSession(connection, admin.USER_ID)
+      const session = await createAdminSession(connection, admin.USER_ID)
       await connection.commit()
       const response = NextResponse.json({
+        ...session,
         role: "ADMIN",
         destination: "/admin",
       })
-      setAdminCookie(response, token)
-      clearSessionCookie(response)
+      clearLegacyCookies(response)
       return response
     }
     const result = await connection.execute<{
@@ -92,15 +89,15 @@ export async function POST(request: NextRequest) {
         { status: 401 }
       )
     }
-    const token = await createSession(connection, row.PASSENGER_ID)
+    const session = await createSession(connection, row.PASSENGER_ID)
     await connection.commit()
     const response = NextResponse.json({
       passenger: { name: row.FULL_NAME, email },
+      ...session,
       role: "PASSENGER",
       destination: "/dashboard",
     })
-    setSessionCookie(response, token)
-    clearAdminCookie(response)
+    clearLegacyCookies(response)
     return response
   } catch (error) {
     await connection?.rollback()

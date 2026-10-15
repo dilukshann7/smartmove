@@ -34,7 +34,6 @@ const tables = [
   "maintenance_records",
   "feedback_records",
   "booking_status_history",
-  "web_admin_sessions",
 ]
 const freshId = () => randomInt(1_000_000, 2 ** 48)
 const tag = freshId().toString(36)
@@ -109,8 +108,8 @@ try {
     admin && passenger,
     "Existing admin and passenger fixtures are required."
   )
-  const token = await auth.createAdminSession(connection, admin.id)
-  const cookie = `${auth.ADMIN_COOKIE}=${token}`
+  const { token } = await auth.createAdminSession(connection, admin.id)
+  const authorization = `Bearer ${token}`
   const dates = (
     await connection.execute(
       `SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD') "today",
@@ -131,7 +130,7 @@ try {
     const req = new NextRequest(`http://localhost/api/admin/${resource}`, {
       method,
       headers: {
-        cookie,
+        authorization,
         "Content-Type": "application/json",
         origin: "http://localhost",
       },
@@ -520,7 +519,7 @@ try {
           "Oracle row counts changed after rollback."
         )
         console.log(
-          "Oracle fixtures and test session rolled back; private MongoDB test notice removed."
+          "Oracle fixtures rolled back; private MongoDB test notice removed."
         )
       }
     } finally {

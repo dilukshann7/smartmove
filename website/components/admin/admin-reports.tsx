@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import { useEffect, useState } from "react"
 import {
   CalendarDays,
@@ -56,7 +58,7 @@ export function AdminReports({ refreshKey }: { refreshKey: number }) {
     const timer = window.setTimeout(async () => {
       setLoading(true)
       try {
-        const response = await fetch(previewUrl, {
+        const response = await apiFetch(previewUrl, {
           cache: "no-store",
           signal: controller.signal,
         })
@@ -98,7 +100,7 @@ export function AdminReports({ refreshKey }: { refreshKey: number }) {
     setError("")
     setNotice("")
     try {
-      const response = await fetch(reportUrl(type), { cache: "no-store" })
+      const response = await apiFetch(reportUrl(type), { cache: "no-store" })
       const data = await response.json()
       if (!response.ok)
         throw new Error(data.error ?? "Unable to export report.")

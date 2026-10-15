@@ -87,7 +87,7 @@ try {
   ).rows[0]
   assert.ok(admin && trip, "An existing admin and trip are required.")
   const auth = load("lib/server/admin-auth.ts")
-  const token = await auth.createAdminSession(connection, admin.ID)
+  const { token } = await auth.createAdminSession(connection, admin.ID)
   db = await load("lib/server/mongo.ts").getMongoDb()
   original = await snapshot()
   const handler = load("app/api/admin/media/route.ts")
@@ -119,7 +119,7 @@ try {
     const query =
       method === "GET" ? `?resource=${body.resource}&id=${body.id}` : ""
     const headers = { origin: options.origin ?? "http://localhost" }
-    if (!options.anonymous) headers.cookie = `${auth.ADMIN_COOKIE}=${token}`
+    if (!options.anonymous) headers.authorization = `Bearer ${token}`
     if (method === "DELETE") headers["content-type"] = "application/json"
     if (options.contentType) headers["content-type"] = options.contentType
     const req = new NextRequest(`http://localhost/api/admin/media${query}`, {

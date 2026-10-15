@@ -1,5 +1,7 @@
 "use client"
 
+import { apiFetch } from "@/lib/client-auth"
+
 import Link from "next/link"
 import { useEffect, useState, type FormEvent } from "react"
 import { MessageSquareText, Send, Star } from "lucide-react"
@@ -28,8 +30,8 @@ export function FeedbackPage() {
   const [submitting, setSubmitting] = useState(false)
   async function load() {
     const [dashboardResponse, feedbackResponse] = await Promise.all([
-      fetch("/api/dashboard", { cache: "no-store" }),
-      fetch("/api/feedback", { cache: "no-store" }),
+      apiFetch("/api/dashboard", { cache: "no-store" }),
+      apiFetch("/api/feedback", { cache: "no-store" }),
     ])
     const dashboard = await dashboardResponse.json()
     const feedback = await feedbackResponse.json()
@@ -40,8 +42,8 @@ export function FeedbackPage() {
   }
   useEffect(() => {
     Promise.all([
-      fetch("/api/dashboard", { cache: "no-store" }),
-      fetch("/api/feedback", { cache: "no-store" }),
+      apiFetch("/api/dashboard", { cache: "no-store" }),
+      apiFetch("/api/feedback", { cache: "no-store" }),
     ])
       .then(async ([dashboardResponse, feedbackResponse]) => {
         const dashboard = await dashboardResponse.json()
@@ -74,7 +76,7 @@ export function FeedbackPage() {
     setSubmitting(true)
     try {
       if (!selectedBooking) throw new Error("Choose an eligible booking.")
-      const response = await fetch("/api/feedback", {
+      const response = await apiFetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

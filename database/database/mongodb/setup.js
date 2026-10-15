@@ -1,9 +1,3 @@
-// Fictional coursework data. Existing records and read/reply states are preserved.
-// Run with mongosh; website uploads store image bytes directly in trip_media.
-db = db.getSiblingDB("smartmove");
-const seededAt = new Date();
-
-// Keep indexes aligned with website/lib/server/mongo.ts.
 db.feedback_content.createIndex({ feedbackId: 1 }, { unique: true });
 db.notifications.createIndex(
   { userId: 1, eventKey: 1 },
@@ -16,7 +10,6 @@ db.trip_media.createIndex({ tripId: 1, mediaType: 1, createdAt: -1 });
 db.trip_media.createIndex({ vehicleId: 1, mediaType: 1, createdAt: -1 });
 db.trip_media.createIndex({ fileId: 1 }, { sparse: true });
 
-// IDs reference the fictional Oracle 05_sample_data.sql records.
 db.feedback_content.updateOne(
   { feedbackId: "1" },
   {
@@ -43,7 +36,6 @@ db.feedback_content.updateOne(
   { upsert: true },
 );
 
-// Vehicle documents stay here. All vehicle/trip image records use trip_media.
 db.vehicle_assets.updateOne(
   {
     vehicleId: "1",
@@ -92,43 +84,4 @@ db.notifications.updateOne(
     },
   },
   { upsert: true },
-);
-
-// Portable demo images are served from website/public/uploads.
-// Uploaded images instead add fileId (ObjectId), data (BinData), contentType
-// (image/webp), width and height to the same document; no GridFS collections.
-const demoImages = [
-  {
-    vehicleId: "1",
-    uploadedBy: "1",
-    mediaType: "IMAGE",
-    fileUrl: "/uploads/demo-vehicle.png",
-    caption: "Generated vehicle illustration for the coursework demo",
-    isDemo: true,
-    source: "GENERATED_DEMO",
-    createdAt: seededAt,
-  },
-  {
-    tripId: "1",
-    uploadedBy: "1",
-    mediaType: "IMAGE",
-    fileUrl: "/uploads/demo-trip.png",
-    caption: "Generated journey illustration for the coursework demo",
-    isDemo: true,
-    source: "GENERATED_DEMO",
-    createdAt: seededAt,
-  },
-];
-for (const image of demoImages) {
-  const target = image.tripId
-    ? { tripId: image.tripId }
-    : { vehicleId: image.vehicleId };
-  db.trip_media.updateOne(
-    { ...target, mediaType: "IMAGE", fileUrl: image.fileUrl },
-    { $setOnInsert: image },
-    { upsert: true },
-  );
-}
-print(
-  "SmartMove setup complete: five collections with existing records preserved.",
 );

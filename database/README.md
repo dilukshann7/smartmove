@@ -136,8 +136,8 @@ MongoDB acts as a complementary database for unstructured and multimedia content
 ### Collections:
 
 - `feedback_content`: Customer reviews, ratings (1–5 scale), comments, keywords, and staff responses.
-- `vehicle_assets`: Documents (registration PDFs) and vehicle photos.
-- `trip_media`: Journey photos and multimedia shared with passengers.
+- `vehicle_assets`: Vehicle documents, such as registration PDFs.
+- `trip_media`: Trip and vehicle photos, with uploaded WebP bytes and metadata in the same document. Photos link through `tripId` or `vehicleId`; no separate GridFS collections are used.
 - `announcements`: Dynamic travel notices and alerts.
 - `notifications`: Passenger in-app alerts and notifications.
 

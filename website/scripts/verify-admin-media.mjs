@@ -1,6 +1,6 @@
 // node --env-file=.env.local scripts/verify-admin-media.mjs
 // Real route handlers and databases, without a server. Oracle sessions roll
-// back and all temporary image metadata/GridFS files are removed in finally.
+// back and all temporary image documents are removed in finally.
 import assert from "node:assert/strict"
 import fs from "node:fs"
 import path from "node:path"
@@ -13,7 +13,7 @@ const require = createRequire(new URL("../package.json", import.meta.url))
 const ts = require("typescript")
 const oracle = require("oracledb")
 const sharp = require("sharp")
-const { GridFSBucket, ObjectId } = require("mongodb")
+const { ObjectId } = require("mongodb")
 const { NextRequest } = require("next/server")
 oracle.outFormat = oracle.OUT_FORMAT_OBJECT
 const cache = new Map()
@@ -94,6 +94,18 @@ try {
   const download = load("app/api/media/[id]/route.ts")
   const gallery = load("app/api/trips/[id]/media/route.ts")
   const media = load("lib/server/media.ts")
+  // Verify pre-existing migrated images through their original public URLs.
+  const storedImages = await db.collection("trip_media").find(
+    { mediaType: "IMAGE", data: { $exists: true } },
+    { projection: { fileUrl: 1, data: 1 } }
+  ).toArray()
+  for (const image of storedImages) {
+    const response = await download.GET(new NextRequest(`http://localhost${image.fileUrl}`), {
+      params: Promise.resolve({ id: image.fileUrl.split("/").at(-1) }),
+    })
+    assert.equal(response.status, 200, "Existing image URL must still work")
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), Buffer.from(image.data.value()), "Existing image bytes must be unchanged")
+  }
   const vehicleTarget = { resource: "vehicles", id: trip.VEHICLE }
   const tripTarget = { resource: "trips", id: trip.ID }
   const png = await sharp({
@@ -195,10 +207,15 @@ try {
     tag
   )
   const vehicleDoc = await db
-    .collection("vehicle_assets")
+    .collection("trip_media")
     .findOne({ _id: new ObjectId(vehicleImage.id) })
   assert.equal(vehicleDoc.vehicleId, String(trip.VEHICLE))
   assert.equal(vehicleDoc.uploadedBy, String(admin.ID))
+  assert.ok(vehicleDoc.data?.value().length > 0)
+  assert.equal(
+    await db.collection("vehicle_assets").countDocuments(),
+    original.vehicle_assets
+  )
   const response = await download.GET(
     new NextRequest(`http://localhost${vehicleImage.url}`),
     {
@@ -209,6 +226,7 @@ try {
   assert.equal(response.headers.get("content-type"), "image/webp")
   assert.equal(response.headers.get("x-content-type-options"), "nosniff")
   const downloaded = Buffer.from(await response.arrayBuffer())
+  assert.deepEqual(downloaded, Buffer.from(vehicleDoc.data.value()))
   const dimensions = await sharp(downloaded).metadata()
   assert.equal(dimensions.format, "webp")
   assert.equal(dimensions.width, 1920)
@@ -241,15 +259,13 @@ try {
   })
   await request("DELETE", { ...vehicleTarget, mediaId: vehicleImage.id })
   assert.equal(
-    await db
-      .collection("media_files.files")
-      .countDocuments({ _id: vehicleDoc.fileId }),
+    await db.collection("trip_media").countDocuments({ _id: vehicleDoc._id }),
     0
   )
   assert.equal(
     await db
-      .collection("media_files.chunks")
-      .countDocuments({ files_id: vehicleDoc.fileId }),
+      .collection("trip_media")
+      .countDocuments({ fileId: vehicleDoc.fileId }),
     0
   )
   const deleted = await download.GET(
@@ -272,21 +288,13 @@ try {
     /up to 5 MB/
   )
   console.log(
-    `Passed ${checks} admin image handler checks plus GridFS downloads, resizing, passenger galleries, delete cleanup, and body-size enforcement.`
+    `Passed ${checks} admin image handler checks plus embedded-image downloads, resizing, passenger galleries, delete cleanup, and body-size enforcement.`
   )
 } finally {
   try {
     if (db) {
       for (const image of temporary) {
-        const collection = db.collection(
-          image.target.resource === "vehicles" ? "vehicle_assets" : "trip_media"
-        )
-        const doc = await collection.findOne({ _id: new ObjectId(image.id) })
-        if (doc?.fileId) {
-          const bucket = new GridFSBucket(db, { bucketName: "media_files" })
-          if (await bucket.find({ _id: doc.fileId }).hasNext())
-            await bucket.delete(doc.fileId)
-        }
+        const collection = db.collection("trip_media")
         await collection.deleteOne({ _id: new ObjectId(image.id) })
       }
       if (original)

@@ -7,18 +7,17 @@
     "vehicleRating": 4,
     "driverRating": 5,
     "comment": "The vehicle was clean and the driver was helpful, but arrival was late.",
-    "keywords": ["clean", "helpful", "late"],
+    "keywords": [
+      "clean",
+      "helpful",
+      "late"
+    ],
     "reply": {
       "staffName": "Demo Staff",
       "message": "Thank you for your feedback."
     }
   },
   "vehicle_assets": [
-    {
-      "vehicleId": "1",
-      "assetType": "IMAGE",
-      "fileUrl": "/uploads/demo-vehicle.png"
-    },
     {
       "vehicleId": "1",
       "assetType": "DOCUMENT",
@@ -35,11 +34,18 @@
     "message": "Your booking 2 is confirmed.",
     "isRead": false
   },
-  "trip_media": {
-    "tripId": "1",
-    "uploadedBy": "1",
-    "mediaType": "IMAGE",
-    "fileUrl": "/uploads/demo-trip.png",
-    "caption": "Generated journey illustration for the coursework demo"
-  }
+  "trip_media": [
+    {
+      "vehicleId": "1",
+      "fileUrl": "/uploads/demo-vehicle.png",
+      "mediaType": "IMAGE"
+    },
+    {
+      "tripId": "1",
+      "uploadedBy": "1",
+      "mediaType": "IMAGE",
+      "fileUrl": "/uploads/demo-trip.png",
+      "caption": "Generated journey illustration for the coursework demo"
+    }
+  ]
 }

@@ -12,7 +12,8 @@ db.feedback_content.aggregate([
 
 db.feedback_content.find({ keywords: { $in: ["late", "delay"] } });
 
-db.vehicle_assets.find({ vehicleId: "1" });
+db.vehicle_assets.find({ vehicleId: "1" }); // Vehicle documents
+db.trip_media.find({ vehicleId: "1", mediaType: "IMAGE" }, { data: 0 }); // Vehicle photos
 db.trip_media.find({ tripId: "1" });
 
 db.feedback_content.countDocuments();

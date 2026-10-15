@@ -14,9 +14,9 @@ db.feedback_content.insertOne({
   },
 });
 
-db.vehicle_assets.insertOne({
+db.trip_media.insertOne({
   vehicleId: "1",
-  assetType: "IMAGE",
+  mediaType: "IMAGE",
   fileUrl: "/uploads/demo-vehicle.png",
 });
 

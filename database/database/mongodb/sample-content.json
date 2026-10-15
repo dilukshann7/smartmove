@@ -7,45 +7,81 @@
     "vehicleRating": 4,
     "driverRating": 5,
     "comment": "The vehicle was clean and the driver was helpful, but arrival was late.",
-    "keywords": [
-      "clean",
-      "helpful",
-      "late"
-    ],
+    "keywords": ["clean", "helpful", "late"],
     "reply": {
       "staffName": "Demo Staff",
-      "message": "Thank you for your feedback."
+      "message": "Thank you for your feedback.",
+      "repliedAt": {
+        "$date": "2026-10-15T00:00:00.000Z"
+      }
+    },
+    "bookingId": "1",
+    "type": "REVIEW",
+    "createdAt": {
+      "$date": "2026-10-15T00:00:00.000Z"
     }
   },
   "vehicle_assets": [
     {
       "vehicleId": "1",
       "assetType": "DOCUMENT",
-      "fileUrl": "/uploads/demo-vehicle-record.pdf"
+      "fileUrl": "/uploads/demo-vehicle-record.pdf",
+      "title": "Fictional demo vehicle record",
+      "isDemo": true,
+      "createdAt": {
+        "$date": "2026-10-15T00:00:00.000Z"
+      }
     }
   ],
   "announcements": {
     "title": "Arrive early",
-    "body": "Please arrive 15 minutes before departure.",
-    "audience": "PASSENGERS"
+    "body": "Sample coursework notice: please arrive 15 minutes before departure.",
+    "audience": "PASSENGERS",
+    "status": "PUBLISHED",
+    "createdAt": {
+      "$date": "2026-10-15T00:00:00.000Z"
+    },
+    "updatedAt": {
+      "$date": "2026-10-15T00:00:00.000Z"
+    },
+    "publishedAt": {
+      "$date": "2026-10-15T00:00:00.000Z"
+    }
   },
   "notifications": {
-    "userId": "2",
-    "message": "Your booking 2 is confirmed.",
-    "isRead": false
+    "userId": "1",
+    "message": "Your booking 1 is confirmed.",
+    "isRead": false,
+    "eventKey": "booking:1:confirmed",
+    "href": "/bookings/1",
+    "createdAt": {
+      "$date": "2026-10-15T00:00:00.000Z"
+    }
   },
   "trip_media": [
     {
       "vehicleId": "1",
       "fileUrl": "/uploads/demo-vehicle.png",
-      "mediaType": "IMAGE"
+      "mediaType": "IMAGE",
+      "uploadedBy": "1",
+      "caption": "Generated vehicle illustration for the coursework demo",
+      "isDemo": true,
+      "source": "GENERATED_DEMO",
+      "createdAt": {
+        "$date": "2026-10-15T00:00:00.000Z"
+      }
     },
     {
       "tripId": "1",
       "uploadedBy": "1",
       "mediaType": "IMAGE",
       "fileUrl": "/uploads/demo-trip.png",
-      "caption": "Generated journey illustration for the coursework demo"
+      "caption": "Generated journey illustration for the coursework demo",
+      "isDemo": true,
+      "source": "GENERATED_DEMO",
+      "createdAt": {
+        "$date": "2026-10-15T00:00:00.000Z"
+      }
     }
   ]
 }

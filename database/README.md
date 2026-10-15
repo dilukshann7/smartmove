@@ -201,10 +201,12 @@ _(Optional Practice Walkthroughs: `07_basic_operations.sql` and `08_booking_exam
    ```javascript
    use smartmove;
    ```
-4. Run the seed script:
+4. Run the seed script (it creates the five current collections and indexes, then inserts missing demo records without overwriting existing data):
    ```javascript
    load("database/mongodb/setup.js");
    ```
+   All image records use `trip_media`; `vehicle_assets` contains documents only. Seed images reference files in `website/public/uploads`, while uploaded images include WebP binary data in the same `trip_media` document. The companion `sample-content.json` uses Extended JSON `$date` examples for date fields.
+
 5. Test the queries:
    ```javascript
    load("database/mongodb/queries.js");

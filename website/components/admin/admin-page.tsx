@@ -88,7 +88,6 @@ const sections: { id: Section; label: string; icon: typeof LayoutDashboard }[] =
     { id: "passengers", label: "Passengers", icon: Users },
     { id: "maintenance", label: "Maintenance", icon: Wrench },
     { id: "bookings", label: "Bookings & tickets", icon: Ticket },
-    { id: "refunds", label: "Eligible refunds", icon: CreditCard },
     { id: "feedback", label: "Feedback", icon: MessageSquareText },
     { id: "reports", label: "Reports", icon: FileBarChart },
     { id: "announcements", label: "Announcements", icon: Bell },

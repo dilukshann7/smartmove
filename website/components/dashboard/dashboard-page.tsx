@@ -270,31 +270,7 @@ export function DashboardPage() {
             </div>
             <div className="space-y-7">
               <NotificationInbox />
-              <Card className="rounded-[26px] border-[#e5ebf3] bg-white shadow-sm">
-                <CardContent className="p-6 sm:p-7">
-                  <h2 className="mb-4 text-xl font-semibold">Travel history</h2>
-                  {history.length === 0 ? (
-                    <p className="text-sm text-[#8493a7]">
-                      Completed trips will appear here.
-                    </p>
-                  ) : (
-                    history.map((item) => (
-                      <Link
-                        key={item.id}
-                        href={`/bookings/${item.id}`}
-                        className="mb-2 block rounded-xl border border-[#edf1f6] p-4 hover:border-[#c8dcf4]"
-                      >
-                        <p className="text-sm font-medium">
-                          {item.origin} → {item.destination}
-                        </p>
-                        <p className="mt-1 text-xs text-[#8999ad]">
-                          {tripDate(item.departureAt)}
-                        </p>
-                      </Link>
-                    ))
-                  )}
-                </CardContent>
-              </Card>
+
               <Card className="rounded-[26px] border-[#e5ebf3] bg-white shadow-sm">
                 <CardContent className="p-6 sm:p-7">
                   <h2 className="mb-4 flex items-center gap-2 text-xl font-semibold">

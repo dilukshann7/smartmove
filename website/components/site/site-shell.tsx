@@ -3,9 +3,10 @@
 import { apiFetch, logout as clearLogin, onAuthChange } from "@/lib/client-auth"
 
 import Link from "next/link"
+import { BrandLogo } from "@/components/site/brand-logo"
 import { usePathname, useRouter } from "next/navigation"
 import { useEffect, useState, type ReactNode } from "react"
-import { ArrowUpRight, Menu, Route } from "lucide-react"
+import { ArrowUpRight, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Sheet,
@@ -84,9 +85,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
             className="smartmove-brand"
             aria-label="SmartMove home"
           >
-            <span className="smartmove-brand-mark">
-              <Route className="size-5" aria-hidden="true" />
-            </span>
+            <BrandLogo />
             <span>
               SmartMove<span className="brand-dot">.</span>
             </span>
@@ -208,9 +207,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
       <footer className="smartmove-footer">
         <div className="smartmove-container">
           <Link href="/" className="smartmove-brand">
-            <span className="smartmove-brand-mark">
-              <Route className="size-4" aria-hidden="true" />
-            </span>
+            <BrandLogo />
             <span>
               SmartMove<span className="brand-dot">.</span>
             </span>

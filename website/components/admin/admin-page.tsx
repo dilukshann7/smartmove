@@ -3,6 +3,7 @@
 import { apiFetch, logout as clearLogin } from "@/lib/client-auth"
 
 import Link from "next/link"
+import { BrandLogo } from "@/components/site/brand-logo"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, type FormEvent } from "react"
 import {
@@ -593,9 +594,7 @@ export function AdminPage({ email }: { email: string }) {
       <header className="sticky top-0 z-30 border-b border-[#e4eaf2] bg-white/95 px-5 py-4 backdrop-blur sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-[1700px] items-center justify-between gap-3">
           <Link href="/" className="smartmove-brand">
-            <span className="smartmove-brand-mark">
-              <MapPinned className="size-5" />
-            </span>
+            <BrandLogo />
             SmartMove<span className="text-[#2471d2]">.</span>
           </Link>
           <div className="flex items-center gap-3">

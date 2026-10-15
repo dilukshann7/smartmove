@@ -4,6 +4,7 @@ import { apiFetch } from "@/lib/client-auth"
 
 import { useEffect, useRef, useState, type FormEvent } from "react"
 import Link from "next/link"
+import { BrandLogo } from "@/components/site/brand-logo"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import {
@@ -197,9 +198,7 @@ export function HomePage() {
             className="smartmove-brand"
             aria-label="SmartMove home"
           >
-            <span className="smartmove-brand-mark">
-              <Route className="size-5" aria-hidden="true" />
-            </span>
+            <BrandLogo />
             <span>
               SmartMove<span className="brand-dot">.</span>
             </span>
@@ -864,9 +863,7 @@ export function HomePage() {
       <footer className="smartmove-footer">
         <div className="smartmove-container">
           <Link href="/" className="smartmove-brand">
-            <span className="smartmove-brand-mark">
-              <Route className="size-4" aria-hidden="true" />
-            </span>
+            <BrandLogo />
             <span>
               SmartMove<span className="brand-dot">.</span>
             </span>

@@ -1,3 +1,7 @@
+// Existing users generate their own feedback and notifications.
+db = db.getSiblingDB("smartmove");
+const seededAt = new Date();
+
 db.feedback_content.createIndex({ feedbackId: 1 }, { unique: true });
 db.notifications.createIndex(
   { userId: 1, eventKey: 1 },
@@ -9,32 +13,6 @@ db.vehicle_assets.createIndex({ vehicleId: 1, assetType: 1, createdAt: -1 });
 db.trip_media.createIndex({ tripId: 1, mediaType: 1, createdAt: -1 });
 db.trip_media.createIndex({ vehicleId: 1, mediaType: 1, createdAt: -1 });
 db.trip_media.createIndex({ fileId: 1 }, { sparse: true });
-
-db.feedback_content.updateOne(
-  { feedbackId: "1" },
-  {
-    $setOnInsert: {
-      feedbackId: "1",
-      bookingId: "1",
-      type: "REVIEW",
-      routeId: "1",
-      vehicleId: "1",
-      driverId: "1",
-      vehicleRating: 4,
-      driverRating: 5,
-      comment:
-        "The vehicle was clean and the driver was helpful, but arrival was late.",
-      keywords: ["clean", "helpful", "late"],
-      createdAt: seededAt,
-      reply: {
-        staffName: "Demo Staff",
-        message: "Thank you for your feedback.",
-        repliedAt: seededAt,
-      },
-    },
-  },
-  { upsert: true },
-);
 
 db.vehicle_assets.updateOne(
   {
@@ -66,21 +44,6 @@ db.announcements.updateOne(
       createdAt: seededAt,
       updatedAt: seededAt,
       publishedAt: seededAt,
-    },
-  },
-  { upsert: true },
-);
-
-db.notifications.updateOne(
-  { userId: "1", eventKey: "booking:1:confirmed" },
-  {
-    $setOnInsert: {
-      userId: "1",
-      eventKey: "booking:1:confirmed",
-      message: "Your booking 1 is confirmed.",
-      isRead: false,
-      href: "/bookings/1",
-      createdAt: seededAt,
     },
   },
   { upsert: true },

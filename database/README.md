@@ -188,7 +188,7 @@ Open Oracle SQL Developer, connect to your Pluggable Database (e.g., `XEPDB1`), 
 | **4** | `oracle/03_management_operations.sql` | Compiles management CRUD procedures for vehicles, drivers, routes, and maintenance.                                      |
 | **5** | `oracle/03_trip_operations.sql`       | Compiles trip lifecycle procedures (reschedule, cancel, complete).                                                       |
 | **6** | `oracle/04_reports.sql`               | Compiles the 5 PL/SQL business reports.                                                                                  |
-| **7** | `oracle/05_sample_data.sql`           | Inserts realistic sample data for vehicles, drivers, routes, trips, and bookings.                                        |
+| **7** | `oracle/05_sample_data.sql`           | Inserts fleet, route, trip, and maintenance examples; no disabled user accounts or bookings.                                        |
 | **8** | `oracle/06_permissions.sql`           | Grants execution permissions and views to `smartmove_database_app`.                                                      |
 
 _(Optional Practice Walkthroughs: `07_basic_operations.sql` and `08_booking_example.sql` demonstrate sample operations with rollback)._
